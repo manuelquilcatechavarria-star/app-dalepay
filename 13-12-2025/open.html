@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificador de Video</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    input { width: 400px; padding: 8px; }
+    button { padding: 8px 12px; margin-left: 10px; }
+    #mensaje { margin-top: 20px; font-weight: bold; }
+    iframe { margin-top: 20px; border: none; }
+  </style>
+</head>
+<body>
+  <h2>Verificador de Video</h2>
+  <p>Coloca el link del video de YouTube:</p>
+  <input type="text" id="videoLink" placeholder="https://www.youtube.com/embed/...">
+  <button onclick="verificar()">Abrir</button>
+
+  <div id="mensaje"></div>
+  <div id="videoContainer"></div>
+
+  <!-- API de YouTube -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+
+    function verificar() {
+      const link = document.getElementById("videoLink").value.trim();
+      const mensaje = document.getElementById("mensaje");
+      const contenedor = document.getElementById("videoContainer");
+
+      mensaje.textContent = "";
+      contenedor.innerHTML = "";
+
+      // Validación de latinAuthor
+      if (link.includes("latinAuthor")) {
+        mensaje.textContent = "❌ Error: El enlace contiene 'latinAuthor' y no se puede abrir.";
+        mensaje.style.color = "red";
+        return;
+      }
+
+      // Extraer ID del video (de un link tipo embed o watch)
+      let videoId = null;
+      const embedMatch = link.match(/embed\/([a-zA-Z0-9_-]+)/);
+      const watchMatch = link.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+
+      if (embedMatch) {
+        videoId = embedMatch[1];
+      } else if (watchMatch) {
+        videoId = watchMatch[1];
+      } else {
+        mensaje.textContent = "❌ No se pudo extraer el ID del video.";
+        mensaje.style.color = "red";
+        return;
+      }
+
+      // Crear contenedor para el reproductor
+      const div = document.createElement("div");
+      div.id = "player";
+      contenedor.appendChild(div);
+
+      // Inicializar reproductor con API de YouTube
+      player = new YT.Player('player', {
+        videoId: videoId,
+        width: '560',
+        height: '315',
+        events: {
+          'onReady': function() {
+            mensaje.textContent = "✅ Intentando reproducir el video...";
+            mensaje.style.color = "green";
+          },
+          'onError': function(event) {
+            mensaje.textContent = "❌ Este video no permite reproducción embebida. Redirigiendo a YouTube...";
+            mensaje.style.color = "red";
+            setTimeout(() => {
+             // window.location.href = "https://www.youtube.com/watch?v=" + videoId;
+            }, 2000);
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
